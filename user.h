@@ -3,6 +3,9 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <random>
+#include <iomanip>
+#include <sstream>
 using namespace std;
 
 class User //Класс User от которого будут наследоваться гость и админ
@@ -23,16 +26,16 @@ public:
 static void CreateUser(const string& fio, const string& login, const string& password, string& file)
     {
         // Создание нового пользователя и запись в файл
+        string salt = generateSalt(12);
+        string hash = Hash(password, salt);
         ofstream outfile(file, ios::app);
-        if (outfile.is_open())
+        if (!outfile.is_open())
         {
-            outfile << fio << ";" << login << ";" << password << endl; // Запись ФИО, логина и пароля в файл
-            outfile.close();
+            cout << "Не удалось открыть файл для записи" << endl;
+            
         }
-        else
-        {
-            throw runtime_error("Не удалось открыть файл для записи");
-        }
+       outfile << fio << ";" << login << ";" << hash << ";" << salt << endl; // Запись ФИО, логина и пароля в файл
+        outfile.close();
     }
 
    static User* LoginToAccount(const string& login, const string& password, const string& file)
@@ -45,14 +48,19 @@ static void CreateUser(const string& fio, const string& login, const string& pas
         if (line.empty()) continue; // Пропускаем пустые строки;
         size_t pos1 = line.find(';');  // find приниммает первым аргументом символ, который ищем, а вторым аргументом позицию, с которой начинаем поиск
         size_t pos2 = line.find(';', pos1 + 1); 
+        size_t pos3 = line.find(';', pos2 + 1);
 
         string fio = line.substr(0, pos1); // Извлекаем ФИО до первого ';' 
         string fileLogin  = line.substr(pos1 + 1, pos2 - pos1 - 1); // Извлекаем логин между первым и вторым ';'
         string filePassword = line.substr(pos2 + 1); // Извлекаем пароль после второго ';'
+        string fileHash = line.substr(pos2 + 1, pos3 - pos2 - 1);
+        string fileSalt = line.substr(pos3 + 1);
+
+        string inputHash = Hash(password, fileSalt);
         // substr принимает первым аргументом позицию, с которой начинаем извлечение, а вторым аргументом количество символов, которые нужно извлечь
-        if (fileLogin == login && filePassword == password) 
+        if (fileLogin == login && fileHash == inputHash) 
         {
-            foundUser = User(fio, fileLogin, filePassword);
+            foundUser = User(fio, fileLogin, fileHash);
             return &foundUser;
         }
     }
@@ -98,7 +106,7 @@ static void CreateUser(const string& fio, const string& login, const string& pas
         string line;
         while (getline(infile, line))
         {
-             size_t pos1 = line.find(';');
+            size_t pos1 = line.find(';');
             size_t pos2 = line.find(';', pos1 + 1);
             string filePassword = line.substr(pos2 + 1);
             if (filePassword == password)
@@ -240,7 +248,7 @@ static void CreateUser(const string& fio, const string& login, const string& pas
                 else
                 {
                     throw runtime_error("Не удалось открыть файл для записи");
-                }
+                } 
                 cout << "Пароль успешно изменён!" << endl;
             }
             else
@@ -262,6 +270,7 @@ static void CreateUser(const string& fio, const string& login, const string& pas
         
     }
 }
+
 
     void  DeleteAccount(const string& file)
     {
@@ -289,23 +298,50 @@ static void CreateUser(const string& fio, const string& login, const string& pas
                 infile.close();
 
                 ofstream outfile(file);
-                if (outfile.is_open())
+                if (!outfile.is_open())
                 {
-                    for (const auto& l : lines)
+                    cout <<"Не удалось открыть файл для записи" << endl;
+                }
+                for (const auto& l : lines)
                     {
                         outfile << l << endl; // Записываем оставшиеся данные в файл
                     }
-                }
-                else
-                {
-                    throw runtime_error("Не удалось открыть файл для записи");
-                }
+                
                 cout << "Аккаунт успешно удалён!" << endl;
                 break; 
 
                 
             }
         }
+    }
+
+
+   static string generateSalt(size_t size)
+     {
+     const char chars[] =
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "0123456789";
+    random_device rd;
+    mt19937 gen(rd());
+    uniform_int_distribution<> dist(0, sizeof(chars) - 2);
+
+    string salt;
+    for (size_t i = 0; i < size; ++i)
+        salt += chars[dist(gen)];
+    return salt;
+    }
+
+  static string Hash(const string& value, string salt)
+    {
+    unsigned int hash = 5381;
+    for (char c : value + salt) 
+    {
+        hash = hash * 33 + c; 
+    }
+    stringstream ss;
+    ss << hex << hash;
+    return ss.str();
     }
 
     virtual ~User() {} 

@@ -54,11 +54,11 @@ public:
     outfile.close();
     }
 
-    int StartTest(const string& file)
+    int StartTest(const string& file, const string& testName)
 {
-    cout << "Введите название теста: ";
-    string testName;
-    getline(cin, testName);
+    // cout << "Введите название теста: ";
+    // string testName;
+    // getline(cin, testName);
 
     ifstream infile(file);
     if (!infile.is_open())
@@ -117,9 +117,42 @@ public:
     }
     infile.close();
     cout << "Ваш результат: " << score << "/" << total << endl;
-    saveResultsToFile("results.txt");
+    TestResult result;
+    result.testName = testName;
+    result.score = score;
+    result.total = total;
+    results.push_back(result);
+    saveResultsToFile(file);
     return score;
 }
+
+void ShowAllResults(const string& file)
+    {
+        ifstream infile(file);
+        string line;
+        bool found = false;
+        cout << "Список всех результатов тестирования: " << endl;
+        while(getline(infile, line))
+        {
+            size_t pos1 = line.find(';');
+            size_t pos2 = line.find(';', pos1 + 1);
+            string fileLogin = line.substr(0, pos1);
+            string testName = line.substr(pos1 + 1,pos2 - pos1 - 1 );
+            string result = line.substr(pos2 + 1);
+            if (Login == fileLogin )
+            {
+                cout << "Тест: " << testName << ", Результат: " << result;
+                found = true;
+            }
+        }
+        if (!found)
+        {
+            cout << "У вас пока нет результатов" << endl;
+        }
+        infile.close();
+    }
+   
+
     void Menu() const
     {
         cout << "<---------------------------------------->" << endl;

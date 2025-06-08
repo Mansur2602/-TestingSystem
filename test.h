@@ -4,6 +4,7 @@
 #include <vector>
 #include <fstream>
 #include <string>
+
 using namespace std;
 
 class Test
@@ -26,6 +27,71 @@ public:
     {
         questions.push_back(question); // Добавление вопроса в тест
     }
+
+    static void ShowSection(const string& file)
+    {
+        ifstream infile(file);
+        if (!infile.is_open())
+        {
+            cout << "Ошибка открытия файла для чтения!" << endl;
+            return;
+        }
+        string line;
+        cout << "<---------------------------------------->" << endl;
+        cout << "Список разделов тестов:" << endl;
+        while (getline(infile, line))
+        {
+            if (line.empty()) continue;
+            if (line.find("SECTION:") == 0)
+            {
+                string sectionName = line.substr(8); // Извлекаем название раздела
+                cout << "Раздел: " << sectionName << endl;
+            }
+        }
+    }
+    
+
+   static void ShowTestsBySection(string& sectionName, const string& file)
+{
+    ifstream infile(file);
+    if (!infile.is_open())
+    {
+        cout << "Ошибка открытия файла для чтения!" << endl;
+        return;
+    }
+
+    string line;
+    string lastTestName;
+    int testCount = 0;
+    cout << "<---------------------------------------->" << endl;
+    cout << "Тесты в разделе \"" << sectionName << "\":" << endl;
+
+    while (getline(infile, line))
+    {
+        if (line.empty()) continue;
+        if (line.find("TEST:") == 0)
+        {
+            lastTestName = line.substr(5);
+        }
+        if (line.find("SECTION:") == 0)
+        {
+            string currentSection = line.substr(8);
+            if (currentSection == sectionName && !lastTestName.empty())
+            {
+                cout << "Тест: " << lastTestName << endl;
+                testCount++;
+            }
+        }
+        if (line == "ENDTEST")
+        {
+            lastTestName.clear();
+        }
+    }
+    if (testCount == 0)
+    {
+        cout << "В этом разделе нет тестов или раздел не найден." << endl;
+    }
+}
 
    static void ShowTests(const string& file) 
     {
