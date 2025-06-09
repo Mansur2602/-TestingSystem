@@ -227,10 +227,14 @@ static void CreateUser(const string& fio, const string& login, const string& pas
                 {
                     size_t pos1 = line.find(';'); // find принимает первым аргументом символ, который ищем, а вторым аргументом позицию, с которой начинаем поиск
                     size_t pos2 = line.find(';', pos1 + 1); 
+                    size_t pos3 = line.find(';', pos2 + 1);
                     string fileLogin = line.substr(pos1 + 1, pos2 - pos1 - 1); // Извлекаем логин между первым и вторым ';'
+                    string fileSalt = line.substr(pos2 + 1, pos3 - pos2 - 1);
+                    string salt = generateSalt(12);
+                    string hash = Hash(newPassword,salt);
                         if (fileLogin == Login)
                          {
-                            line = FIO + ";" + Login + ";" + newPassword; // Обновляем строку с новым паролем
+                            line = FIO + ";" + Login + ";" + hash + ";" + fileSalt; // Обновляем строку с новым паролем
                         }
                     
                     lines.push_back(line); 

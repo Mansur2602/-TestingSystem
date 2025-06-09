@@ -141,7 +141,7 @@ void ShowAllResults(const string& file)
             string result = line.substr(pos2 + 1);
             if (Login == fileLogin )
             {
-                cout << "Тест: " << testName << ", Результат: " << result;
+                cout << "Тест: " << testName << ", Результат: " << result << endl;
                 found = true;
             }
         }
