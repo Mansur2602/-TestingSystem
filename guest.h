@@ -122,7 +122,7 @@ public:
     result.score = score;
     result.total = total;
     results.push_back(result);
-    saveResultsToFile(file);
+    // saveResultsToFile(file);
     return score;
 }
 

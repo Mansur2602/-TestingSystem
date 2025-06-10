@@ -12,6 +12,7 @@ using namespace std;
 
 int main()
 {
+    // system("chcp 65001 > nul")
     string usersFile = "users.txt";
     ofstream ofile(usersFile, ios::app);
     
@@ -198,16 +199,11 @@ if (!adminExists) {
             break;
         }
 
-        // Если пользователь вошёл или зарегистрировался — выходим из цикла
-        if (currentUser) break;
-    }
-
-    // Работаем с пользователем после выхода из цикла
-    if (isGuest && currentUser)
+    while (isGuest && currentUser)
      {
         Guest guest(currentUser->getFio(), currentUser->getLogin(), currentUser->getPassword());
         cout << "Добро пожаловать, " << guest.getFio() << endl;
-        while (true)
+        while (isGuest && currentUser)
         {
         int choose;
         guest.Menu();
@@ -347,13 +343,16 @@ if (!adminExists) {
                 delete currentUser; 
                 currentUser = nullptr; 
                 isGuest = false; 
-                cout << "Аккаунт успешно удалён!" << endl;
-                return 0; 
+                // cout << "Аккаунт успешно удалён!" << endl;
+                break;
             }
             case 5: // Выйти
             {
                 cout << "Выход из системы..." << endl;
-                return 0; 
+                delete currentUser;
+                currentUser = nullptr;
+                isGuest = false;
+                break;
             }
             default:
                 cout << "Неверный выбор, попробуйте снова." << endl;
@@ -363,11 +362,11 @@ if (!adminExists) {
     }
     }
     }
-    if (isAdmin && currentUser) 
+    while (isAdmin && currentUser) 
     {
         Admin admin(currentUser->getFio(), currentUser->getLogin(), currentUser->getPassword());
         cout << "Добро пожаловать, администратор " << admin.getFio() << endl;
-        while (true)
+        while (isAdmin && currentUser)
         {
 
         admin.Menu();
@@ -428,10 +427,9 @@ if (!adminExists) {
             case 8: // Выйти
             {   
                 cout << "Выход из системы..." << endl;
-                delete currentUser; 
-                currentUser = nullptr; 
-                isAdmin = false; 
-                return 0; 
+                delete currentUser;
+                currentUser = nullptr;
+                isAdmin = false;
             }
             default:
             {
@@ -442,4 +440,5 @@ if (!adminExists) {
     }
 
     }
+}
 }

@@ -230,8 +230,8 @@ static void CreateUser(const string& fio, const string& login, const string& pas
                     size_t pos3 = line.find(';', pos2 + 1);
                     string fileLogin = line.substr(pos1 + 1, pos2 - pos1 - 1); // Извлекаем логин между первым и вторым ';'
                     string fileSalt = line.substr(pos2 + 1, pos3 - pos2 - 1);
-                    string salt = generateSalt(12);
-                    string hash = Hash(newPassword,salt);
+                    // string salt = generateSalt(12);
+                    string hash = Hash(newPassword,fileSalt);
                         if (fileLogin == Login)
                          {
                             line = FIO + ";" + Login + ";" + hash + ";" + fileSalt; // Обновляем строку с новым паролем
@@ -276,48 +276,46 @@ static void CreateUser(const string& fio, const string& login, const string& pas
 }
 
 
-    void  DeleteAccount(const string& file)
+   void DeleteAccount(const string& file)
+{
+    int choose;
+    cout << "Вы уверены, что хотите удалить аккаунт?" << endl;
+    cout << "1. Да" << endl;
+    cout << "2. Нет" << endl;
+    cout << "Выберите действие: ";
+    cin >> choose;
+    cin.ignore();
+    if (choose == 1)
     {
-        int choose;
-        cout << "Вы уверены, что хотите удалить аккаунт?" << endl;
-        cout << "1. Да" << endl;
-        cout << "2. Нет" << endl;
-        cout << "Выберите действие: ";
-        cin >> choose;
-        cin.ignore();
-        if (choose == 1)
+        ifstream infile(file);
+        vector<string> lines;
+        string line;
+        while(getline(infile, line))
         {
-            ifstream infile(file);
-            vector<string> lines;
-            string line;
-            while(getline(infile, line))
+            size_t pos1 = line.find(';');
+            size_t pos2 = line.find(';', pos1 + 1);
+            string fileLogin = line.substr(pos1 + 1, pos2 - pos1 - 1);
+            if (fileLogin != Login)
             {
-                size_t pos1 = line.find(';');
-                size_t pos2 = line.find(';', pos1 + 1);
-                string fileLogin = line.substr(pos1 + 1, pos2 - pos1 - 1);
-                if (fileLogin != Login) // делаем проверку на то, что это не наш логин 
-                {
-                    lines.push_back(line); // пихаем все что нужно кроме нашего логина который нужно удалить
-                }
-                infile.close();
-
-                ofstream outfile(file);
-                if (!outfile.is_open())
-                {
-                    cout <<"Не удалось открыть файл для записи" << endl;
-                }
-                for (const auto& l : lines)
-                    {
-                        outfile << l << endl; // Записываем оставшиеся данные в файл
-                    }
-                
-                cout << "Аккаунт успешно удалён!" << endl;
-                break; 
-
-                
+                lines.push_back(line);
             }
         }
+        infile.close();
+
+        ofstream outfile(file);
+        if (!outfile.is_open())
+        {
+            cout <<"Не удалось открыть файл для записи" << endl;
+            return;
+        }
+        for (const auto& l : lines)
+        {
+            outfile << l << endl;
+        }
+        outfile.close();
+        cout << "Аккаунт успешно удалён!" << endl;
     }
+}
 
 
    static string generateSalt(size_t size)
